@@ -51,6 +51,9 @@ func (red RedHat) DetectUnfixed(r *models.ScanResult, ignoreWillNotFix bool) (nC
 				}
 			}
 		}
+		// I'm going to open an issue about this in the upstream, without this change, all of these connections are
+		// being left open, which is eventually causing the service to OOM bc it has 100s of thousands of file handlers open
+		red.DBDriver.DB.CloseDB();
 	}
 	return nCVEs, nil
 }
