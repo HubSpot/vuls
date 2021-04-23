@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/future-architect/vuls/logging"
 	"github.com/future-architect/vuls/config"
 	"github.com/future-architect/vuls/models"
 	"github.com/future-architect/vuls/util"
@@ -153,19 +154,40 @@ func (red RedHat) mergePackageStates(v models.VulnInfo, ps []gostmodels.RedhatPa
 			return
 		}
 
-		if !(pstate.FixState == "Will not fix" ||
-			pstate.FixState == "Fix deferred" ||
-			pstate.FixState == "Affected") {
+        // "under investigation" currently excluded
+        // this effectively just checks that it's not "Not affected", not sure why the maintainer didn't just check
+        // `lowerFixState != "Not affected"`
+        lowerFixState := strings.ToLower(pstate.FixState)
+        logging.Log.Warnf(
+            "Fix state '%s' for CVE: '%s'",
+            lowerFixState,
+            v.CveID,
+        )
+		if !(lowerFixState == "will not fix" ||
+			lowerFixState == "dix deferred" ||
+			lowerFixState == "affected" ||
+			lowerFixState == "out of support scope" ||
+			lowerFixState == "new") {
+
+            if !(lowerFixState != "not affected") {
+                logging.Log.Warn(
+                    "The fix state '%s' for CVE: '%s' is unknown and will be treated as if it's unaffected",
+                    lowerFixState,
+                    v.CveID,
+                )
+            }
+
 			return
 		}
+
 
 		if _, ok := installed[pstate.PackageName]; !ok {
 			return
 		}
 
 		notFixedYet := false
-		switch pstate.FixState {
-		case "Will not fix", "Fix deferred", "Affected":
+		switch lowerFixState {
+		case "will not fix", "fix deferred", "affected", "out of support scope", "new":
 			notFixedYet = true
 		}
 
