@@ -4,17 +4,17 @@ package subcmds
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
-	"encoding/json"
 
 	"github.com/future-architect/vuls/config"
 	"github.com/future-architect/vuls/logging"
-	"github.com/future-architect/vuls/server"
 	"github.com/future-architect/vuls/models"
+	"github.com/future-architect/vuls/server"
 	"github.com/google/subcommands"
 )
 
@@ -104,7 +104,7 @@ func (p *ServerCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}
 
 	http.Handle("/vuls", server.VulsHandler{
 		ToLocalFile: p.toLocalFile,
-		Exceptions: exceptions,
+		Exceptions:  exceptions,
 	})
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "ok")
@@ -124,8 +124,8 @@ func getExceptionEntriesFromJson() models.ExceptionEntries {
 		return models.ExceptionEntries{}
 	}
 
-    var exceptions models.ExceptionEntries
-    json.Unmarshal([]byte(exceptionsData), &exceptions)
-    logging.Log.Infof("Loaded exceptions file...")
-    return exceptions
+	var exceptions models.ExceptionEntries
+	json.Unmarshal([]byte(exceptionsData), &exceptions)
+	logging.Log.Infof("Loaded exceptions file...")
+	return exceptions
 }

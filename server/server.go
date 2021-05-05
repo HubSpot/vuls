@@ -23,7 +23,7 @@ import (
 // VulsHandler is used for vuls server mode
 type VulsHandler struct {
 	ToLocalFile bool
-	Exceptions models.ExceptionEntries
+	Exceptions  models.ExceptionEntries
 }
 
 // ServeHTTP is http handler

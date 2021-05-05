@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/future-architect/vuls/logging"
 	"github.com/future-architect/vuls/config"
+	"github.com/future-architect/vuls/logging"
 	"github.com/future-architect/vuls/models"
 	"github.com/future-architect/vuls/util"
 	gostmodels "github.com/knqyf263/gost/models"
@@ -54,7 +54,7 @@ func (red RedHat) DetectUnfixed(r *models.ScanResult, ignoreWillNotFix bool) (nC
 		}
 		// I'm going to open an issue about this in the upstream, without this change, all of these connections are
 		// being left open, which is eventually causing the service to OOM bc it has 100s of thousands of file handlers open
-		red.DBDriver.DB.CloseDB();
+		red.DBDriver.DB.CloseDB()
 	}
 	return nCVEs, nil
 }
@@ -154,32 +154,31 @@ func (red RedHat) mergePackageStates(v models.VulnInfo, ps []gostmodels.RedhatPa
 			return
 		}
 
-        // "under investigation" currently excluded
-        // this effectively just checks that it's not "Not affected", not sure why the maintainer didn't just check
-        // `lowerFixState != "Not affected"`
-        lowerFixState := strings.ToLower(pstate.FixState)
-        logging.Log.Warnf(
-            "Fix state '%s' for CVE: '%s'",
-            lowerFixState,
-            v.CveID,
-        )
+		// "under investigation" currently excluded
+		// this effectively just checks that it's not "Not affected", not sure why the maintainer didn't just check
+		// `lowerFixState != "Not affected"`
+		lowerFixState := strings.ToLower(pstate.FixState)
+		logging.Log.Warnf(
+			"Fix state '%s' for CVE: '%s'",
+			lowerFixState,
+			v.CveID,
+		)
 		if !(lowerFixState == "will not fix" ||
 			lowerFixState == "dix deferred" ||
 			lowerFixState == "affected" ||
 			lowerFixState == "out of support scope" ||
 			lowerFixState == "new") {
 
-            if !(lowerFixState != "not affected") {
-                logging.Log.Warn(
-                    "The fix state '%s' for CVE: '%s' is unknown and will be treated as if it's unaffected",
-                    lowerFixState,
-                    v.CveID,
-                )
-            }
+			if !(lowerFixState != "not affected") {
+				logging.Log.Warn(
+					"The fix state '%s' for CVE: '%s' is unknown and will be treated as if it's unaffected",
+					lowerFixState,
+					v.CveID,
+				)
+			}
 
 			return
 		}
-
 
 		if _, ok := installed[pstate.PackageName]; !ok {
 			return

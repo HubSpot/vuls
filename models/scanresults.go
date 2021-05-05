@@ -109,27 +109,26 @@ func (r *ScanResult) FilterInactiveWordPressLibs(detectInactive bool) {
 }
 
 func (r *ScanResult) FilterExceptedCves(exceptions ExceptionEntries) {
-    filteredCount := 0
+	filteredCount := 0
 	filtered := r.ScannedCves.Find(func(v VulnInfo) bool {
-        if _, ok := exceptions.Exceptions[v.CveID]; ok {
-            logging.Log.Infof("Exception found for cve %s, will exclude it from results.", v.CveID)
-            filteredCount++
-            return false
-        }
-        logging.Log.Debugf("No exception found for cve %s.", v.CveID)
-        return true
+		if _, ok := exceptions.Exceptions[v.CveID]; ok {
+			logging.Log.Infof("Exception found for cve %s, will exclude it from results.", v.CveID)
+			filteredCount++
+			return false
+		}
+		logging.Log.Debugf("No exception found for cve %s.", v.CveID)
+		return true
 	})
-    logging.Log.Infof("Excluding %d CVEs with exceptions", filteredCount)
+	logging.Log.Infof("Excluding %d CVEs with exceptions", filteredCount)
 	r.ScannedCves = filtered
 	return
 }
 
 func (r *ScanResult) ApplyDetectorFilters(config config.Config) {
-    r.ScannedCves = r.ScannedCves.FilterUnfixed(config.IgnoreUnfixed)
-    r.ScannedCves = r.ScannedCves.FilterByCvssOver(config.CvssScoreOver)
-    return
+	r.ScannedCves = r.ScannedCves.FilterUnfixed(config.IgnoreUnfixed)
+	r.ScannedCves = r.ScannedCves.FilterByCvssOver(config.CvssScoreOver)
+	return
 }
-
 
 // ReportFileName returns the filename on localhost without extension
 func (r ScanResult) ReportFileName() (name string) {
