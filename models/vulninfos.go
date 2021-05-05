@@ -29,12 +29,17 @@ func (v VulnInfos) Find(f func(VulnInfo) bool) VulnInfos {
 
 // FilterByCvssOver return scored vulnerabilities
 func (v VulnInfos) FilterByCvssOver(over float64) VulnInfos {
-	return v.Find(func(v VulnInfo) bool {
+    numFiltered := 0
+	returnVal := v.Find(func(v VulnInfo) bool {
 		if over <= v.MaxCvssScore().Value.Score {
 			return true
 		}
+        logging.Log.Debugf("Filtered %s out because it's score is less than the configured min: %f", v.CveID, over);
+        numFiltered++
 		return false
 	})
+    logging.Log.Infof("Filtered out %d detected CVE due to it's cvss score being lower than the configured min", numFiltered);
+    return returnVal
 }
 
 // FilterIgnoreCves filter function.
@@ -51,10 +56,11 @@ func (v VulnInfos) FilterIgnoreCves(ignoreCveIDs []string) VulnInfos {
 
 // FilterUnfixed filter unfixed CVE-IDs
 func (v VulnInfos) FilterUnfixed(ignoreUnfixed bool) VulnInfos {
+    numFiltered := 0
 	if !ignoreUnfixed {
 		return v
 	}
-	return v.Find(func(v VulnInfo) bool {
+	returnVal := v.Find(func(v VulnInfo) bool {
 		// Report cves detected by CPE because Vuls can't know 'fixed' or 'unfixed'
 		if len(v.CpeURIs) != 0 {
 			return true
@@ -63,8 +69,16 @@ func (v VulnInfos) FilterUnfixed(ignoreUnfixed bool) VulnInfos {
 		for _, p := range v.AffectedPackages {
 			NotFixedAll = NotFixedAll && p.NotFixedYet
 		}
+
+	    if !NotFixedAll {
+	        numFiltered++
+	        logging.Log.Debugf("Filtered %s out because it's not fixed", v.CveID)
+	    }
+
 		return !NotFixedAll
 	})
+    logging.Log.Infof("Filtered %d detected CVEs out due to their fix status", numFiltered)
+    return returnVal
 }
 
 // FilterIgnorePkgs is filter function.

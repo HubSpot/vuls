@@ -23,6 +23,7 @@ import (
 // VulsHandler is used for vuls server mode
 type VulsHandler struct {
 	ToLocalFile bool
+	Exceptions models.ExceptionEntries
 }
 
 // ServeHTTP is http handler
@@ -93,6 +94,10 @@ func (h VulsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	logging.Log.Infof("%s: %d modules are detected", r.FormatServerName(), nMetasploitCve)
 
+	r.FilterExceptedCves(h.Exceptions)
+	// for some reason the detector filters don't get applied in the server package, they're only applied when
+	// the host is scanned, from the look of things
+	r.ApplyDetectorFilters(config.Conf)
 	detector.FillCweDict(&r)
 
 	// set ReportedAt to current time when it's set to the epoch, ensures that ReportedAt will be set

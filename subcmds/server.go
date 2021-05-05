@@ -9,10 +9,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"encoding/json"
 
 	"github.com/future-architect/vuls/config"
 	"github.com/future-architect/vuls/logging"
 	"github.com/future-architect/vuls/server"
+	"github.com/future-architect/vuls/models"
 	"github.com/google/subcommands"
 )
 
@@ -98,8 +100,11 @@ func (p *ServerCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}
 		return subcommands.ExitUsageError
 	}
 
+	exceptions := getExceptionEntriesFromJson()
+
 	http.Handle("/vuls", server.VulsHandler{
 		ToLocalFile: p.toLocalFile,
+		Exceptions: exceptions,
 	})
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "ok")
@@ -110,4 +115,17 @@ func (p *ServerCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}
 		return subcommands.ExitFailure
 	}
 	return subcommands.ExitSuccess
+}
+
+func getExceptionEntriesFromJson() models.ExceptionEntries {
+	exceptionsData, err := os.ReadFile("./exceptions.json")
+	if err != nil {
+		logging.Log.Errorf("Failed to load exceptions file, will use empty exceptions set: %+v", err)
+		return models.ExceptionEntries{}
+	}
+
+    var exceptions models.ExceptionEntries
+    json.Unmarshal([]byte(exceptionsData), &exceptions)
+    logging.Log.Infof("Loaded exceptions file...")
+    return exceptions
 }

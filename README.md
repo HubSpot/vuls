@@ -148,6 +148,23 @@ Vuls has some options to detect the vulnerabilities
 
 - [Scan WordPress](https://vuls.io/docs/en/usage-scan-wordpress.html)
 
+## Exceptions
+
+This fork enables you to add redhat exceptions via an `exceptions.json` file. To do this, create a file relative to your go executable called `exceptions.json`
+The content should look like. Cves in the exceptions map will be filtered out of the results
+```json
+{
+  "Exceptions": {
+    "CVE-123-456": {
+      "Cve": "CVE-123-456",
+      "Reason": "some reason",
+      "Submitter": "some username"
+    }
+  }
+}
+```
+
+
 ## MISC
 
 - Nondestructive testing
